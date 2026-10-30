@@ -5,6 +5,7 @@ import Home from '../pages/Home'
 import List from '../pages/List'
 import Detail from '../pages/Detail'
 import Teams from '../pages/Teams'
+import Favorites from '../pages/Favorites'
 import './App.css'
 
 function App() {
@@ -18,6 +19,7 @@ function App() {
             <Route path="/list" element={<List />} />
             <Route path="/detail/:name" element={<Detail />} />
             <Route path="/teams" element={<Teams />} />
+            <Route path="/favorites" element={<Favorites />} />
           </Routes>
         </main>
       </BrowserRouter>

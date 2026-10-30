@@ -1,11 +1,20 @@
 import { useParams, useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
+import { useApp } from '../src/context/AppContext'
 
 function Detail() {
   const { name } = useParams()
   const navigate = useNavigate()
   const [pokemon, setPokemon] = useState(null)
   const [loading, setLoading] = useState(true)
+
+  const {
+    isPokemonFavorite,
+    toggleFavoritePokemon,
+    activeTeam,
+    addPokemonToTeam,
+    removePokemonFromTeam
+  } = useApp()
 
   useEffect(() => {
     async function fetchDetail() {
@@ -33,23 +42,38 @@ function Detail() {
     ghost: '#705898', steel: '#B8B8D0',
   }
 
+  const isFav = isPokemonFavorite(pokemon.name)
+  const pokemonImage = pokemon.sprites.other['official-artwork'].front_default || pokemon.sprites.front_default
+  const inActiveTeam = activeTeam ? activeTeam.pokemons.some((p) => p.name === pokemon.name) : false
+  const activeTeamFull = activeTeam ? activeTeam.pokemons.length >= 6 : true
+
   return (
     <div className="page detail-page">
-      <button className="back-btn" onClick={() => navigate(-1)}>← Terug</button>
+      <div className="detail-top-bar">
+        <button className="back-btn" onClick={() => navigate(-1)}>← Terug</button>
+        <button
+          className={`detail-fav-btn ${isFav ? 'is-fav' : ''}`}
+          onClick={() => toggleFavoritePokemon({ name: pokemon.name, image: pokemonImage })}
+        >
+          {isFav ? '❤️ In Favorieten' : '🤍 Voeg toe aan favorieten'}
+        </button>
+      </div>
 
       <div className="detail-card">
         <div className="detail-image-wrap">
           <img
-            src={pokemon.sprites.other['official-artwork'].front_default || pokemon.sprites.front_default}
+            src={pokemonImage}
             alt={pokemon.name}
             className="detail-image"
           />
         </div>
 
         <div className="detail-info">
-          <h1 className="detail-name">
-            #{String(pokemon.id).padStart(3, '0')} {pokemon.name}
-          </h1>
+          <div className="detail-title-row">
+            <h1 className="detail-name">
+              #{String(pokemon.id).padStart(3, '0')} {pokemon.name}
+            </h1>
+          </div>
 
           <div className="detail-types">
             {pokemon.types.map((t) => (
@@ -62,6 +86,30 @@ function Detail() {
               </span>
             ))}
           </div>
+
+          {/* Quick Team Management in Detail view */}
+          {activeTeam && (
+            <div className="detail-team-box">
+              <span>Actief team: <strong>{activeTeam.name}</strong> ({activeTeam.pokemons.length}/6)</span>
+              <button
+                className={`detail-team-toggle-btn ${inActiveTeam ? 'in-team' : ''}`}
+                onClick={() => {
+                  if (inActiveTeam) {
+                    removePokemonFromTeam(activeTeam.id, pokemon.name)
+                  } else {
+                    addPokemonToTeam(activeTeam.id, {
+                      name: pokemon.name,
+                      sprites: pokemon.sprites,
+                      types: pokemon.types
+                    })
+                  }
+                }}
+                disabled={activeTeamFull && !inActiveTeam}
+              >
+                {inActiveTeam ? '✓ Verwijder uit actief team' : '+ Voeg toe aan actief team'}
+              </button>
+            </div>
+          )}
 
           <div className="detail-stats-grid">
             <div className="stat-box">
